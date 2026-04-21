@@ -53,7 +53,9 @@ Note: Without a Groq API key, the "Scan + Safe Summarize" feature will not work 
 
 Live Demo - https://safeprompt-scanner.onrender.com
 
-Made as an Educational ProjectDemonstrating practical AI security, prompt injection defense, and safe LLM usage.
+Screenshots of the project have been uploaded in screenshots folder
+
+Made as an Educational ProjectDemonstrating practical AI security, prompt injection defense, and safe LLM usage. If you have any suggestions feel free to suggest them. Thank you.
 
 
 
