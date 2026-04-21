@@ -8,6 +8,7 @@ from groq import Groq
 from dotenv import load_dotenv
 import os 
 
+os.environ["LLM_GUARD_DISABLE_TORCH"] = "1"   # Disable heavy Torch components
 load_dotenv()
 
 app = Flask(__name__)
