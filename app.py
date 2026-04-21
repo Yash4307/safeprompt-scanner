@@ -5,38 +5,19 @@ import re
 import datetime
 from groq import Groq
 from dotenv import load_dotenv
-import os 
+import os
 
-os.environ["LLM_GUARD_DISABLE_TORCH"] = "1"   # Disable heavy Torch components
-os.environ["LLM_GUARD_DISABLE_SPACY"] = "1"
-os.environ["LLM_GUARD_DISABLE_TRANSFORMERS"] = "1"
-
+# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# Initialize scanners
-scanner = PromptInjection(threshold=0.5)
-
-# Groq client for safe summarization (free tier)
+# Groq client for safe summarization
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Optional: Add a safety check
+# Optional warning if API key is missing
 if not os.getenv("GROQ_API_KEY"):
     print("WARNING: GROQ_API_KEY not found in .env file!")
-
-# Dangerous patterns (backup layer)
-DANGEROUS_PATTERNS = [
-    r'ignore (all )?previous (instructions|prompts)',
-    r'disregard (previous|above)',
-    r'forget (everything|your rules)',
-    r'reveal your system prompt',
-    r'you are now',
-    r'act as',
-    r'new instructions',
-    r'output only',
-    r'without any restrictions'
-]
 
 scan_history = []  # In-memory history
 
@@ -50,11 +31,9 @@ def clean_webpage(url):
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Remove unwanted elements more aggressively
         for element in soup(["script", "style", "nav", "header", "footer", "aside", "form", "button", "svg", "noscript"]):
             element.decompose()
         
-        # Try to find main article content (common patterns on news sites)
         article = soup.find('article') or \
                   soup.find('div', class_=lambda x: x and ('article' in x.lower() or 'content' in x.lower() or 'story' in x.lower())) or \
                   soup.find('main')
@@ -64,18 +43,16 @@ def clean_webpage(url):
         else:
             text = soup.get_text(separator=' ', strip=True)
         
-        # Clean up extra whitespace
         text = re.sub(r'\s+', ' ', text).strip()
         
-        # If still too short, fall back to full page
         if len(text) < 100:
             text = soup.get_text(separator=' ', strip=True)
             text = re.sub(r'\s+', ' ', text).strip()
         
         if len(text) < 50:
-            return f"Error: Could not extract meaningful text from the page. The website may be heavily JavaScript-based."
+            return f"Error: Could not extract meaningful text from the page."
         
-        return text[:15000]  # Increased limit a bit
+        return text[:15000]
         
     except Exception as e:
         return f"Error fetching page: {str(e)}"
@@ -83,7 +60,7 @@ def clean_webpage(url):
 def safe_summarize(text):
     try:
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",      # Current recommended fast model
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are a neutral, factual summarizer. Summarize the following text in 4-6 clear bullet points. Keep it concise and objective."},
                 {"role": "user", "content": text[:7000]}
