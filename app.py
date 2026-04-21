@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 from bs4 import BeautifulSoup
 import re
-import datetime
+from datetime import datetime, timezone
 from groq import Groq
 from dotenv import load_dotenv
 import os
@@ -78,7 +78,7 @@ def scan_for_injection(text, summarize=False):
             "risk": "Low",
             "score": 0.0,
             "reasons": ["Input too short or empty"],
-            "timestamp": datetime.datetime.now().strftime("%H:%M:%S"),
+            "timestamp_utc" = datetime.now(timezone.utc).isoformat()
             "summary": None
         }
 
@@ -115,7 +115,7 @@ def scan_for_injection(text, summarize=False):
         "risk": risk_level,
         "score": final_score,
         "reasons": reasons,
-        "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
+        "timestamp": timestamp_utc
     }
 
     # Safe Summarization - only for Low risk
