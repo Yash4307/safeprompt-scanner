@@ -78,7 +78,7 @@ def scan_for_injection(text, summarize=False):
             "risk": "Low",
             "score": 0.0,
             "reasons": ["Input too short or empty"],
-            "timestamp_utc" = datetime.now(timezone.utc).isoformat()
+            "timestamp_utc" = datetime.now(timezone.utc).isoformat(),
             "summary": None
         }
 
