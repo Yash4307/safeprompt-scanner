@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import datetime
-from llm_guard.input_scanners import PromptInjection
 from groq import Groq
 from dotenv import load_dotenv
 import os 
