@@ -3,20 +3,21 @@
 A web-based tool to detect prompt injection attacks in text and webpages before feeding them to any LLM.
 
 ### Features
-- Real-time prompt injection detection (strong, mild, and invisible/hidden characters)
+- Real-time prompt injection detection (strong, mild patterns + invisible/hidden characters)
 - Webpage URL fetching with smart text cleaning
 - Safe summarization using Groq (only when risk is Low)
-- Invisible text scanner (zero-width spaces, hidden Unicode, etc.)
+- Detection of zero-width spaces and hidden Unicode characters
 - Quick test prompts (Safe / Mild / Harmful)
 - Scan history with statistics panel
-- Export scan results
+- Export scan results as TXT
 - Cyberpunk UI with Matrix rain background
+- Timestamps shown in user's local timezone
 
 ### Tech Stack
-- Backend: Flask + Python
-- Detection: llm-guard + custom regex + hidden character detection
-- Summarization: Groq API
-- Frontend: Bootstrap + Matrix rain canvas
+- **Backend**: Flask + Python
+- **Detection**: Custom regex + invisible character detection
+- **Summarization**: Groq API
+- **Frontend**: Bootstrap + Matrix rain canvas
 
 ### Local Setup
 
@@ -35,7 +36,8 @@ venv\Scripts\activate
 3. Install dependencies:
 pip install -r requirements.txt
 
-4. Get your Groq API Key (Required for Safe Summarization):Go to https://console.groq.com/keys
+4. Get your Groq API Key (Required for Safe Summarization):
+Go to https://console.groq.com/keys
 Sign up / Log in
 Click "Create API Key"
 Copy the key
@@ -49,8 +51,8 @@ python app.py
 
 Note: Without a Groq API key, the "Scan + Safe Summarize" feature will not work (but detection will still function normally).
 
-Live Demo(Coming soon after deployment)
-Screenshots(Add your screenshots here)
+Live Demo - https://safeprompt-scanner.onrender.com
+
 Made as an Educational ProjectDemonstrating practical AI security, prompt injection defense, and safe LLM usage.
 
 
