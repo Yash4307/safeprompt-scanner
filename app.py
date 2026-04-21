@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 import os 
 
 os.environ["LLM_GUARD_DISABLE_TORCH"] = "1"   # Disable heavy Torch components
+os.environ["LLM_GUARD_DISABLE_SPACY"] = "1"
+os.environ["LLM_GUARD_DISABLE_TRANSFORMERS"] = "1"
+
 load_dotenv()
 
 app = Flask(__name__)
