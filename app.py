@@ -106,38 +106,48 @@ def scan_for_injection(text, summarize=False):
             "summary": None
         }
 
-    # Layer 1: llm-guard
-    sanitized, is_valid, risk_score = scanner.scan(text)
+    # Simple but effective regex detection
+    strong_patterns = [
+        r'ignore all previous instructions',
+        r'reveal your system prompt',
+        r'tell me how to make (a bomb|explosive|weapon|drugs)',
+        r'without any restrictions'
+    ]
 
-    # Layer 2: Pattern detection
-    strong = re.search(r'ignore all previous instructions|reveal your system prompt|tell me how to make (a bomb|explosive|weapon)', text, re.IGNORECASE)
-    mild = re.search(r'disregard|forget.*rules|act as|new instructions', text, re.IGNORECASE)
+    mild_patterns = [
+        r'disregard (previous|above)',
+        r'forget (everything|your rules)',
+        r'act as',
+        r'new instructions'
+    ]
 
-    # Layer 3: Invisible / Hidden Character Scanner
+    # Invisible / Hidden characters
     invisible_chars = ['\u200b', '\u200c', '\u200d', '\u2060', '\uFEFF', '\u200e', '\u200f', '\u2028', '\u2029']
     hidden_count = sum(text.count(c) for c in invisible_chars)
     has_hidden = hidden_count > 0
 
-    # Risk logic
-    if strong or has_hidden:
+    strong_match = any(re.search(p, text, re.IGNORECASE) for p in strong_patterns)
+    mild_match = any(re.search(p, text, re.IGNORECASE) for p in mild_patterns)
+
+    if strong_match or has_hidden:
         risk_level = "High"
         final_score = 0.95
-    elif mild or risk_score > 0.7:
+    elif mild_match:
         risk_level = "Medium"
-        final_score = 0.60
+        final_score = 0.55
     else:
         risk_level = "Low"
-        final_score = max(0.0, round(risk_score, 2))
+        final_score = 0.0
 
     reasons = []
     if has_hidden:
-        reasons.append(f"⚠️ Invisible/hidden characters detected ({hidden_count} zero-width spaces)")
-    if strong:
+        reasons.append(f"⚠️ Invisible characters detected ({hidden_count})")
+    if strong_match:
         reasons.append("Strong injection attempt detected")
-    elif mild:
+    elif mild_match:
         reasons.append("Mild injection pattern detected")
     else:
-        reasons.append(f"LLM Guard score: {final_score:.2f}")
+        reasons.append("No injection patterns detected")
 
     result = {
         "risk": risk_level,
@@ -146,7 +156,7 @@ def scan_for_injection(text, summarize=False):
         "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
     }
 
-    # Summarization - ONLY for Low risk
+    # Summarization only for Low risk
     if summarize:
         if risk_level == "Low":
             try:
@@ -154,7 +164,7 @@ def scan_for_injection(text, summarize=False):
             except Exception as e:
                 result["summary"] = f"Summarization error: {str(e)}"
         else:
-            result["summary"] = f"⚠️ Summarization BLOCKED due to {risk_level} risk.\n\nReason: The content contains potential prompt injection. Sending it to an LLM can bypass safety rules."
+            result["summary"] = f"⚠️ Summarization BLOCKED due to {risk_level} risk.\n\nReason: The content contains potential prompt injection."
 
     # Save to history
     scan_history.append({
