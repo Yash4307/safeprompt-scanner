@@ -105,33 +105,19 @@ def scan_for_injection(text, summarize=False):
             "summary": None
         }
 
-    # Simple but effective regex detection
-    strong_patterns = [
-        r'ignore all previous instructions',
-        r'reveal your system prompt',
-        r'tell me how to make (a bomb|explosive|weapon|drugs)',
-        r'without any restrictions'
-    ]
+    # Regex-based detection
+    strong = re.search(r'ignore all previous instructions|reveal your system prompt|tell me how to make (a bomb|explosive|weapon)', text, re.IGNORECASE)
+    mild = re.search(r'disregard|forget.*rules|act as|new instructions', text, re.IGNORECASE)
 
-    mild_patterns = [
-        r'disregard (previous|above)',
-        r'forget (everything|your rules)',
-        r'act as',
-        r'new instructions'
-    ]
-
-    # Invisible / Hidden characters
+    # Invisible / hidden characters detection
     invisible_chars = ['\u200b', '\u200c', '\u200d', '\u2060', '\uFEFF', '\u200e', '\u200f', '\u2028', '\u2029']
     hidden_count = sum(text.count(c) for c in invisible_chars)
     has_hidden = hidden_count > 0
 
-    strong_match = any(re.search(p, text, re.IGNORECASE) for p in strong_patterns)
-    mild_match = any(re.search(p, text, re.IGNORECASE) for p in mild_patterns)
-
-    if strong_match or has_hidden:
+    if strong or has_hidden:
         risk_level = "High"
         final_score = 0.95
-    elif mild_match:
+    elif mild:
         risk_level = "Medium"
         final_score = 0.55
     else:
@@ -140,13 +126,13 @@ def scan_for_injection(text, summarize=False):
 
     reasons = []
     if has_hidden:
-        reasons.append(f"⚠️ Invisible characters detected ({hidden_count})")
-    if strong_match:
+        reasons.append(f"⚠️ Invisible/hidden characters detected ({hidden_count})")
+    if strong:
         reasons.append("Strong injection attempt detected")
-    elif mild_match:
+    elif mild:
         reasons.append("Mild injection pattern detected")
     else:
-        reasons.append("No injection patterns detected")
+        reasons.append("No obvious injection patterns found")
 
     result = {
         "risk": risk_level,
@@ -155,7 +141,7 @@ def scan_for_injection(text, summarize=False):
         "timestamp": datetime.datetime.now().strftime("%H:%M:%S")
     }
 
-    # Summarization only for Low risk
+    # Safe Summarization - only for Low risk
     if summarize:
         if risk_level == "Low":
             try:
